@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Module 6 architecture</title>
+<style>
+  :root {
+    --navy:#1b1a3d; --purple:#6c5ce7; --peach:#fbe6d2; --grey:#eef0f4; --grey-b:#e2e3ea;
+    --ink:#1b1a3d; --muted:#5c5c74; --line:#9a9ab0; --green:#2fa56a; --amber:#d98e26; --red:#d9534f;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body { background:#ffffff; }
+  #diagram { width:1000px; padding:34px 40px 32px; background:#ffffff; color:var(--ink); }
+  .kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:18px; }
+
+  .flow { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  .node { flex:1; border-radius:11px; padding:13px 12px; text-align:center; font-weight:600; font-size:13px; }
+  .node small { display:block; font-weight:500; font-size:11px; margin-top:3px; opacity:.85; }
+  .n-cases { background:#fff; border:1.5px solid var(--navy); color:var(--navy); }
+  .n-agent { background:var(--navy); color:#fff; }
+  .n-check { background:var(--purple); color:#fff; }
+  .n-score { background:#fff; border:1.5px solid var(--purple); color:var(--purple); font-weight:700; }
+  .sep { color:var(--line); font-size:20px; flex:0 0 auto; }
+
+  .board { background:var(--grey); border:1px solid var(--grey-b); border-radius:14px; padding:18px 20px; }
+  .board .cap { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:12px; }
+  .row { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--grey-b);
+         border-radius:9px; padding:11px 14px; margin-bottom:9px; }
+  .row:last-child { margin-bottom:0; }
+  .row .case { font-family:"SF Mono",ui-monospace,Menlo,monospace; font-size:13px; font-weight:600; color:var(--ink); width:160px; }
+  .row .rate { font-size:13px; color:var(--muted); margin-left:auto; }
+  .pill { font-size:11px; font-weight:800; letter-spacing:.04em; color:#fff; border-radius:20px; padding:3px 11px; }
+  .p-pass  { background:var(--green); }
+  .p-flaky { background:var(--amber); }
+  .foot { margin-top:14px; font-size:12px; color:var(--muted); }
+  .foot b { color:var(--navy); }
+</style>
+</head>
+<body>
+  <div id="diagram">
+    <div class="kicker">Module 6 &nbsp;&middot;&nbsp; Measure, then improve</div>
+
+    <div class="flow">
+      <div class="node n-cases">Cases<small>prompt + expected behavior</small></div>
+      <span class="sep">&rarr;</span>
+      <div class="node n-agent">Live agent<small>run each x repeat</small></div>
+      <span class="sep">&rarr;</span>
+      <div class="node n-check">Structural checks<small>right tool? gate fired?</small></div>
+      <span class="sep">&rarr;</span>
+      <div class="node n-score">Scorecard<small>a pass rate</small></div>
+    </div>
+
+    <div class="board">
+      <div class="cap">The gap is a number, not a vibe</div>
+      <div class="row">
+        <span class="case">cost_math</span>
+        <span class="pill p-flaky">FLAKY</span>
+        <span class="rate">1 / 3 &nbsp;&middot;&nbsp; skips the calculator</span>
+      </div>
+      <div class="row">
+        <span class="case">scope_cdn</span>
+        <span class="pill p-pass">PASS</span>
+        <span class="rate">3 / 3 &nbsp;&middot;&nbsp; routes CDN out of scope</span>
+      </div>
+      <div class="row">
+        <span class="case">guardrails</span>
+        <span class="pill p-pass">PASS</span>
+        <span class="rate">6 / 6 &nbsp;&middot;&nbsp; the gate blocks every write</span>
+      </div>
+      <div class="foot">Fix the cost rule, re-run, and watch <b>cost_math</b> rise to PASS 3/3 while the rest hold.</div>
+    </div>
+  </div>
+</body>
+</html>

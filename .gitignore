@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Akamai agent deploy: real secrets and the private Discord-bridge manifest. Never push these.
+agent/deploy/manifests/secret.yaml
+agent/deploy/manifests/*-secret.yaml
+agent/deploy/manifests/discord-bridge.yaml
+agent/deploy/manifests/networkpolicy.yaml

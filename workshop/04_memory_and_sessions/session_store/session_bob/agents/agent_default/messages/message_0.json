@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "My name is Bob and my region is us-sea."
+      }
+    ]
+  },
+  "message_id": 0,
+  "redact_message": null,
+  "created_at": "2026-06-15T01:03:01.994939+00:00",
+  "updated_at": "2026-06-15T01:03:01.994952+00:00"
+}

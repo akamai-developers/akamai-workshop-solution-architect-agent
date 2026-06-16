@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Module 5 architecture</title>
+<style>
+  :root {
+    --navy:#1b1a3d; --purple:#6c5ce7; --peach:#fbe6d2; --peach-b:#f1cba0;
+    --grey:#eef0f4; --grey-b:#e2e3ea; --ink:#1b1a3d; --muted:#5c5c74; --line:#9a9ab0;
+    --green:#2fa56a; --red:#d9534f;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body { background:#ffffff; }
+  #diagram { width:1000px; padding:34px 40px 32px; background:#ffffff; color:var(--ink); }
+  .kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:18px; }
+  .cards { display:flex; gap:18px; }
+  .card { flex:1; border:1px solid var(--grey-b); border-radius:14px; padding:18px 18px 16px; background:#fbfbfd; }
+  .card.hi { border-color:var(--purple); box-shadow:0 0 0 3px rgba(108,92,231,.13); }
+  .card .ic { width:34px; height:34px; color:var(--navy); margin-bottom:12px; }
+  .card .hi .ic, .card.hi .ic { color:var(--purple); }
+  .card .name { font-size:15.5px; font-weight:700; }
+  .card .mgr { font-size:12px; color:var(--muted); margin-top:4px; }
+  .card .rules { margin-top:14px; border-top:1px solid var(--grey-b); padding-top:13px; }
+  .card .rule { display:flex; align-items:center; gap:9px; font-size:12.5px; margin-bottom:8px; color:var(--ink); }
+  .mark { width:17px; height:17px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+          font-size:11px; font-weight:800; color:#fff; flex:0 0 auto; }
+  .yes { background:var(--green); }
+  .no  { background:var(--red); }
+  .card .note { margin-top:12px; font-size:11.5px; color:var(--muted); }
+
+  .flow { margin-top:18px; background:var(--grey); border:1px solid var(--grey-b); border-radius:13px;
+          padding:15px 18px; display:flex; align-items:center; gap:12px; }
+  .flow .lab { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .step { background:#fff; border:1px solid var(--grey-b); border-radius:9px; padding:9px 14px; font-size:12.5px;
+          font-weight:600; color:var(--navy); text-align:center; }
+  .step small { display:block; font-weight:500; color:var(--muted); font-size:11px; margin-top:2px; }
+  .sep { color:var(--line); font-size:18px; }
+</style>
+</head>
+<body>
+  <div id="diagram">
+    <div class="kicker">Module 5 &nbsp;&middot;&nbsp; Read, then transform, then render. Who should do it?</div>
+
+    <div class="cards">
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/><path d="M16 3l2 2-2 2"/></svg>
+        <div class="name">Generic diagram tool</div>
+        <div class="mgr">the model orchestrates read, parse, build</div>
+        <div class="rules">
+          <div class="rule"><span class="mark no">&times;</span> reads the real data reliably</div>
+          <div class="rule"><span class="mark no">&times;</span> draws what is actually there</div>
+        </div>
+        <div class="note">A 7B fabricates the node pools, because it cannot chain read then parse then build.</div>
+      </div>
+
+      <div class="card hi">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="8.5" y="14" width="7" height="7" rx="1.5"/><path d="M6.5 10v2.5h11V10M12 10v4"/></svg>
+        <div class="name">Deterministic tool</div>
+        <div class="mgr">code reads and renders, the model makes one call</div>
+        <div class="rules">
+          <div class="rule"><span class="mark yes">&check;</span> reads the real data reliably</div>
+          <div class="rule"><span class="mark yes">&check;</span> draws what is actually there</div>
+        </div>
+        <div class="note">diagram_lke_cluster and diagram_network: real plan ids, real counts, every time.</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <span class="lab">in code</span>
+      <div class="step">Read<small>Linode API: cluster + pools</small></div>
+      <span class="sep">&rarr;</span>
+      <div class="step">Build<small>graphviz nodes and edges</small></div>
+      <span class="sep">&rarr;</span>
+      <div class="step">Render<small>one real PNG</small></div>
+    </div>
+  </div>
+</body>
+</html>

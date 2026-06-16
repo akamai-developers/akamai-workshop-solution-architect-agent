@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Module 2 architecture</title>
+<style>
+  :root {
+    --navy:#1b1a3d; --purple:#6c5ce7; --peach:#fbe6d2; --peach-b:#f1cba0;
+    --grey:#eef0f4; --grey-b:#e2e3ea; --ink:#1b1a3d; --muted:#5c5c74; --line:#9a9ab0;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body { background:#ffffff; }
+  #diagram { width:1000px; padding:38px 40px 34px; background:#ffffff; color:var(--ink); }
+  .kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:26px; }
+
+  .flow { display:flex; align-items:center; }
+  .bignode { width:212px; height:104px; border-radius:14px; display:flex; flex-direction:column;
+             align-items:center; justify-content:center; text-align:center; padding:12px; }
+  .bignode .t { font-size:16px; font-weight:700; }
+  .bignode .s { font-size:12px; opacity:.88; margin-top:6px; }
+  .agent  { background:var(--navy); color:#fff; }
+  .server { background:var(--purple); color:#fff; }
+  .api    { background:var(--peach); border:1px solid var(--peach-b); color:#7a4a1e; }
+
+  .conn { flex:1; display:flex; flex-direction:column; align-items:center; padding:0 8px; }
+  .conn .above { font-size:11.5px; color:var(--ink); font-weight:700; margin-bottom:6px; text-align:center; }
+  .conn .line { width:100%; height:0; border-top:2px solid var(--line); position:relative; }
+  .conn .line::after { content:""; position:absolute; right:-1px; top:-5px;
+                       border-left:9px solid var(--line); border-top:5px solid transparent; border-bottom:5px solid transparent; }
+  .conn .below { font-size:11px; color:var(--muted); margin-top:6px; text-align:center; }
+
+  .callout { margin:22px 0 0 240px; width:430px; background:var(--grey); border:1px solid var(--grey-b);
+             border-radius:11px; padding:12px 16px; font-size:12.5px; color:var(--ink); position:relative; }
+  .callout:before { content:""; position:absolute; top:-7px; left:48px; width:12px; height:12px;
+                    background:var(--grey); border-left:1px solid var(--grey-b); border-top:1px solid var(--grey-b); transform:rotate(45deg); }
+  .callout b { color:var(--navy); }
+
+  .domains { margin-top:30px; }
+  .domains .cap { font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+                  color:var(--muted); margin-bottom:12px; }
+  .chips { display:flex; flex-wrap:wrap; gap:10px; }
+  .chip { background:#fff; border:1.5px solid var(--grey-b); border-radius:999px; padding:8px 15px;
+          font-size:13px; font-weight:600; color:var(--ink); }
+  .chip.dim { color:var(--muted); border-style:dashed; }
+</style>
+</head>
+<body>
+  <div id="diagram">
+    <div class="kicker">Module 2 &nbsp;&middot;&nbsp; Real data with MCP</div>
+
+    <div class="flow">
+      <div class="bignode agent"><div class="t">Your Agent</div><div class="s">MCP client (Strands)</div></div>
+      <div class="conn">
+        <div class="above">list_tools &middot; call_tool</div>
+        <div class="line"></div>
+        <div class="below">MCP protocol (stdio)</div>
+      </div>
+      <div class="bignode server"><div class="t">akamai-cloud-mcp</div><div class="s">MCP server</div></div>
+      <div class="conn">
+        <div class="above">HTTPS GET</div>
+        <div class="line"></div>
+        <div class="below">read-only</div>
+      </div>
+      <div class="bignode api"><div class="t">Linode API</div><div class="s">Akamai Cloud</div></div>
+    </div>
+
+    <div class="callout"><b>Secrets stay at the server.</b> The token, access keys, and kubeconfigs are read here and scrubbed out. They never reach the model.</div>
+
+    <div class="domains">
+      <div class="cap">Tools the server exposes, by domain (load only what you need)</div>
+      <div class="chips">
+        <span class="chip">regions</span>
+        <span class="chip">pricing</span>
+        <span class="chip">compute</span>
+        <span class="chip">lke</span>
+        <span class="chip">object_storage</span>
+        <span class="chip">networking</span>
+        <span class="chip">account</span>
+        <span class="chip dim">writes: none (read-only)</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

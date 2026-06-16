@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Module 7 architecture</title>
+<style>
+  :root {
+    --navy:#1b1a3d; --purple:#6c5ce7; --peach:#fbe6d2; --peach-b:#f1cba0;
+    --grey:#eef0f4; --grey-b:#e2e3ea; --ink:#1b1a3d; --muted:#5c5c74; --line:#9a9ab0;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body { background:#ffffff; }
+  #diagram { width:1000px; padding:34px 40px 32px; background:#ffffff; color:var(--ink); }
+  .kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:18px; }
+  .top { display:flex; align-items:center; justify-content:center; gap:14px; }
+  .chip { border:1.5px solid var(--navy); color:var(--navy); background:#fff; border-radius:10px;
+          padding:11px 18px; font-weight:600; font-size:13px; }
+  .orch { background:var(--navy); color:#fff; border-radius:12px; padding:12px 24px; font-weight:700;
+          font-size:15px; text-align:center; }
+  .orch small { display:block; font-weight:500; opacity:.85; font-size:11.5px; margin-top:3px; }
+  .arrow { color:var(--line); font-size:22px; line-height:1; }
+  .routes { text-align:center; color:var(--muted); font-size:12.5px; margin:14px 0 16px; }
+  .team { display:flex; gap:16px; }
+  .card { flex:1; border:1px solid var(--grey-b); border-radius:14px; padding:16px 16px 15px; background:#fbfbfd; }
+  .card.spec { border-color:var(--purple); box-shadow:0 0 0 3px rgba(108,92,231,.10); }
+  .card .ic { width:30px; height:30px; color:var(--purple); margin-bottom:10px; }
+  .card .name { font-size:14px; font-weight:700; font-family:"SF Mono",ui-monospace,Menlo,monospace; }
+  .card .sub { font-size:12px; color:var(--muted); margin-top:9px; line-height:1.45; }
+  .foot { margin-top:16px; background:var(--grey); border:1px solid var(--grey-b); border-radius:11px;
+          padding:12px 16px; font-size:12.5px; color:var(--ink); display:flex; align-items:center; gap:11px; }
+  .foot b { color:var(--navy); }
+  .tag { background:#fff; border:1px solid var(--peach-b); color:#9a6b2f; border-radius:7px; padding:3px 9px;
+         font-size:11px; font-weight:700; font-family:"SF Mono",ui-monospace,Menlo,monospace; flex:0 0 auto; }
+</style>
+</head>
+<body>
+  <div id="diagram">
+    <div class="kicker">Module 7 &nbsp;&middot;&nbsp; An orchestrator and specialists</div>
+
+    <div class="top">
+      <div class="chip">You ask</div>
+      <div class="arrow">&rarr;</div>
+      <div class="orch">Orchestrator<small>router</small></div>
+    </div>
+    <div class="routes">routes each part of the request to one specialist, then writes one combined answer</div>
+
+    <div class="team">
+      <div class="card spec">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h6"/></svg>
+        <div class="name">documentation_agent</div>
+        <div class="sub">searches a local index, fetches techdocs.akamai.com pages live</div>
+      </div>
+      <div class="card spec">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/></svg>
+        <div class="name">account_agent</div>
+        <div class="sub">reads the akamai-cloud-mcp tools, look-ups only</div>
+      </div>
+      <div class="card spec">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M11 11h2M14 11h2M8 15h2M11 15h2M14 15h2"/></svg>
+        <div class="name">pricing_agent</div>
+        <div class="sub">calculator only, no account access, so it cannot invent a price</div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="tag">draw_diagram</span>
+      <span>stays a <b>plain tool</b> on the orchestrator, one call, nothing to reason about</span>
+    </div>
+  </div>
+</body>
+</html>

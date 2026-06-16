@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Module 3 architecture</title>
+<style>
+  :root {
+    --navy:#1b1a3d; --purple:#6c5ce7; --peach:#fbe6d2; --peach-b:#f1cba0;
+    --grey:#eef0f4; --grey-b:#e2e3ea; --ink:#1b1a3d; --muted:#5c5c74; --line:#9a9ab0;
+    --red:#e0524d; --red-bg:#fdeaea; --green:#2fa56a; --green-bg:#e2f4ea;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body { background:#ffffff; }
+  #diagram { width:1000px; padding:36px 40px 34px; background:#ffffff; color:var(--ink); }
+  .kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:24px; }
+
+  .row { display:flex; align-items:center; }
+  .node { width:176px; height:74px; border-radius:13px; display:flex; flex-direction:column;
+          align-items:center; justify-content:center; text-align:center; padding:10px; flex:0 0 auto; }
+  .node .t { font-size:14px; font-weight:700; }
+  .node .s { font-size:11.5px; opacity:.88; margin-top:4px; }
+  .agent  { background:var(--navy); color:#fff; }
+  .gate   { background:var(--purple); color:#fff; box-shadow:0 0 0 4px rgba(108,92,231,.16); }
+  .denied { background:var(--red-bg); border:1.5px solid var(--red); color:var(--red); }
+  .resend { background:#fff; border:1.5px solid var(--navy); color:var(--navy); }
+  .runs   { background:var(--green-bg); border:1.5px solid var(--green); color:#1f7a4d; }
+
+  .conn { flex:1; display:flex; flex-direction:column; align-items:center; padding:0 8px; }
+  .conn .above { font-size:11px; color:var(--ink); font-weight:700; margin-bottom:6px; text-align:center; }
+  .conn .line { width:100%; height:0; border-top:2px solid var(--line); position:relative; }
+  .conn .line.red { border-top-color:var(--red); }
+  .conn .line.green { border-top-color:var(--green); }
+  .conn .line::after { content:""; position:absolute; right:-1px; top:-5px;
+                       border-left:9px solid var(--line); border-top:5px solid transparent; border-bottom:5px solid transparent; }
+  .conn .line.red::after { border-left-color:var(--red); }
+  .conn .line.green::after { border-left-color:var(--green); }
+  .conn .below { font-size:10.5px; color:var(--muted); margin-top:6px; text-align:center; }
+
+  .band { margin:16px 0; background:var(--grey); border:1px solid var(--grey-b); border-radius:12px;
+          padding:13px 18px; font-size:12.5px; color:var(--ink); text-align:center; }
+  .band b { color:var(--navy); }
+  .passlabel { font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+               color:var(--muted); margin-bottom:9px; }
+</style>
+</head>
+<body>
+  <div id="diagram">
+    <div class="kicker">Module 3 &nbsp;&middot;&nbsp; Approval before any change</div>
+
+    <div class="passlabel">First pass &middot; the model asks, the gate denies</div>
+    <div class="row">
+      <div class="node agent"><div class="t">Agent</div><div class="s">wants to write</div></div>
+      <div class="conn">
+        <div class="above">delete_instance(12345)</div>
+        <div class="line"></div>
+        <div class="below">write tool call</div>
+      </div>
+      <div class="node gate"><div class="t">Approval Gate</div><div class="s">deny by default</div></div>
+      <div class="conn">
+        <div class="above">no grant</div>
+        <div class="line red"></div>
+        <div class="below">denied</div>
+      </div>
+      <div class="node denied"><div class="t">Plan + approval code</div><div class="s">nothing changes</div></div>
+    </div>
+
+    <div class="band">A human reviews the plan and the one-time approval code, then approves. The grant rides in <b>invocation_state</b>, out of band. The model never sees it and cannot set it.</div>
+
+    <div class="passlabel">Second pass &middot; re-sent with the grant, the gate allows</div>
+    <div class="row">
+      <div class="node resend"><div class="t">Re-send</div><div class="s">+ grant</div></div>
+      <div class="conn">
+        <div class="above">approval_grant = code</div>
+        <div class="line green"></div>
+        <div class="below">invocation_state</div>
+      </div>
+      <div class="node gate"><div class="t">Approval Gate</div><div class="s">code matches</div></div>
+      <div class="conn">
+        <div class="above">approved</div>
+        <div class="line green"></div>
+        <div class="below">runs once</div>
+      </div>
+      <div class="node runs"><div class="t">Write runs</div><div class="s">account changes</div></div>
+    </div>
+  </div>
+</body>
+</html>

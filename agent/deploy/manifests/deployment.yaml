@@ -1,0 +1,88 @@
+# The agent Deployment. Two replicas, each serving the orchestrator over HTTP on 8080.
+# Replace the image with your GHCR image.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: akamai-sa-agent
+  namespace: akamai-sa-agent
+  labels:
+    app: akamai-sa-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: akamai-sa-agent
+  template:
+    metadata:
+      labels:
+        app: akamai-sa-agent
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: agent
+          image: ghcr.io/REPLACE_your_org/akamai-sa-agent:latest
+          ports:
+            - containerPort: 8080
+          env:
+            # Non-secret config.
+            - name: MODEL_PROVIDER
+              value: "vllm"
+            - name: VLLM_MODEL_ID
+              value: "Qwen/Qwen2.5-7B-Instruct"
+            - name: MCP_ENABLED
+              value: "true"
+            - name: SESSION_BACKEND
+              value: "s3"
+            - name: SESSION_CLUSTER
+              value: "us-sea-1"
+            # Secrets.
+            - name: LINODE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: akamai-sa-agent-secrets
+                  key: LINODE_TOKEN
+            - name: VLLM_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: akamai-sa-agent-secrets
+                  key: VLLM_BASE_URL
+            - name: VLLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: akamai-sa-agent-secrets
+                  key: VLLM_API_KEY
+            - name: SESSION_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: akamai-sa-agent-secrets
+                  key: SESSION_BUCKET
+            - name: SESSION_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: akamai-sa-agent-secrets
+                  key: SESSION_ACCESS_KEY
+            - name: SESSION_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: akamai-sa-agent-secrets
+                  key: SESSION_SECRET_KEY
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"

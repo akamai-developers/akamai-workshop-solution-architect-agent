@@ -1,0 +1,25 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "text": "It's nice to meet you, Alice! Your region is `us-ord`, which stands for Chicago, Illinois data center. How can I assist you further?"
+      }
+    ],
+    "metadata": {
+      "usage": {
+        "inputTokens": 473,
+        "outputTokens": 34,
+        "totalTokens": 507
+      },
+      "metrics": {
+        "latencyMs": 0,
+        "timeToFirstByteMs": 260
+      }
+    }
+  },
+  "message_id": 1,
+  "redact_message": null,
+  "created_at": "2026-06-15T01:03:01.987874+00:00",
+  "updated_at": "2026-06-15T01:03:01.987895+00:00"
+}

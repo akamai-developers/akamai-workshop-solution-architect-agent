@@ -1,0 +1,14 @@
+{
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "text": "What is my name and region?"
+      }
+    ]
+  },
+  "message_id": 2,
+  "redact_message": null,
+  "created_at": "2026-06-15T01:03:05.078391+00:00",
+  "updated_at": "2026-06-15T01:03:05.078395+00:00"
+}

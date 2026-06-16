@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Module 4 architecture</title>
+<style>
+  :root {
+    --navy:#1b1a3d; --purple:#6c5ce7; --peach:#fbe6d2; --grey:#eef0f4; --grey-b:#e2e3ea;
+    --ink:#1b1a3d; --muted:#5c5c74; --line:#9a9ab0; --green:#2fa56a; --red:#d9534f;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body { background:#ffffff; }
+  #diagram { width:1000px; padding:34px 40px 30px; background:#ffffff; color:var(--ink); }
+  .kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:8px; }
+  .progress { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:18px;
+              display:flex; align-items:center; gap:8px; }
+  .progress .bar { flex:1; height:0; border-top:2px solid var(--line); position:relative; }
+  .progress .bar::after { content:""; position:absolute; right:-1px; top:-5px;
+                          border-left:9px solid var(--line); border-top:5px solid transparent; border-bottom:5px solid transparent; }
+
+  .cards { display:flex; gap:18px; }
+  .card { flex:1; border:1px solid var(--grey-b); border-radius:14px; padding:18px 18px 16px; background:#fbfbfd; }
+  .card.hi { border-color:var(--purple); box-shadow:0 0 0 3px rgba(108,92,231,.13); }
+  .card .ic { width:36px; height:36px; color:var(--navy); margin-bottom:12px; }
+  .card .hi-ic { color:var(--purple); }
+  .card .name { font-size:16px; font-weight:700; }
+  .card .mgr { font-size:12px; color:var(--muted); margin-top:4px; font-family:"SF Mono",ui-monospace,Menlo,monospace; }
+  .card .rules { margin-top:14px; border-top:1px solid var(--grey-b); padding-top:13px; }
+  .card .rule { display:flex; align-items:center; gap:9px; font-size:12.5px; margin-bottom:8px; color:var(--ink); }
+  .mark { width:17px; height:17px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+          font-size:11px; font-weight:800; color:#fff; flex:0 0 auto; }
+  .yes { background:var(--green); }
+  .no  { background:var(--red); }
+  .card .note { margin-top:12px; font-size:11.5px; color:var(--muted); }
+</style>
+</head>
+<body>
+  <div id="diagram">
+    <div class="kicker">Module 4 &nbsp;&middot;&nbsp; Three places conversation memory can live</div>
+    <div class="progress">in process<span class="bar"></span>more durable, more shared &nbsp;&rarr;&nbsp; Akamai Object Storage</div>
+
+    <div class="cards">
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+        <div class="name">In process</div>
+        <div class="mgr">one reused agent</div>
+        <div class="rules">
+          <div class="rule"><span class="mark no">&times;</span> survives a restart</div>
+          <div class="rule"><span class="mark no">&times;</span> shared across replicas</div>
+        </div>
+        <div class="note">Fast, but the memory dies with the process.</div>
+      </div>
+
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a8 3 0 0 0 16 0a8 3 0 0 0-16 0z"/><path d="M4 7v10a8 3 0 0 0 16 0V7"/></svg>
+        <div class="name">File volume</div>
+        <div class="mgr">FileSessionManager</div>
+        <div class="rules">
+          <div class="rule"><span class="mark yes">&check;</span> survives a restart</div>
+          <div class="rule"><span class="mark no">&times;</span> shared across replicas</div>
+        </div>
+        <div class="note">Durable, but only on one machine.</div>
+      </div>
+
+      <div class="card hi">
+        <svg class="ic hi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19a4 4 0 0 1-.7-7.9a5 5 0 0 1 9.7-1.6A4.5 4.5 0 0 1 18 19H6z"/></svg>
+        <div class="name">Akamai Object Storage</div>
+        <div class="mgr">S3SessionManager</div>
+        <div class="rules">
+          <div class="rule"><span class="mark yes">&check;</span> survives a restart</div>
+          <div class="rule"><span class="mark yes">&check;</span> shared across replicas</div>
+        </div>
+        <div class="note">Any pod behind a NodeBalancer rehydrates the same session_id.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

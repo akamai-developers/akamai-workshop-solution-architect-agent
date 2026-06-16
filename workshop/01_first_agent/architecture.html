@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Module 1 architecture</title>
+<style>
+  :root {
+    --navy:#1b1a3d; --purple:#6c5ce7; --peach:#fbe6d2; --peach-b:#f1cba0;
+    --grey:#eef0f4; --grey-b:#e2e3ea; --ink:#1b1a3d; --muted:#5c5c74; --line:#9a9ab0;
+  }
+  * { box-sizing:border-box; margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  body { background:#ffffff; }
+  #diagram { width:1000px; padding:38px 40px 40px; background:#ffffff; color:var(--ink); }
+  .kicker { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:8px; }
+
+  .loopzone { position:relative; width:920px; height:330px; }
+  .wires { position:absolute; inset:0; width:920px; height:330px; }
+  .node { position:absolute; border-radius:12px; display:flex; flex-direction:column; align-items:center;
+          justify-content:center; text-align:center; font-weight:600; line-height:1.25; padding:10px; }
+  .node small { display:block; font-weight:500; opacity:.85; font-size:11px; margin-top:3px; }
+  .ask   { left:10px;  top:128px; width:150px; height:60px; background:#fff; border:1.5px solid var(--navy); color:var(--navy); font-size:13px; }
+  .model { left:300px; top:128px; width:185px; height:60px; background:var(--navy); color:#fff; font-size:13.5px; }
+  .tool  { left:610px; top:128px; width:185px; height:60px; background:var(--purple); color:#fff; font-size:13.5px; }
+  .final { left:300px; top:256px; width:185px; height:56px; background:#fff; border:1.5px solid var(--navy); color:var(--navy); font-size:13.5px; font-weight:700; }
+  .wires text { fill:var(--muted); font-size:11.5px; font-weight:600; }
+  .wires text.mono { font-size:10.5px; font-weight:600; fill:#7a5cf0; }
+
+  .infra { display:flex; gap:16px; margin-top:18px; width:920px; }
+  .card { flex:1; background:var(--grey); border:1px solid var(--grey-b); border-radius:13px;
+          padding:18px 14px 16px; text-align:center; }
+  .card svg.ic { width:32px; height:32px; color:var(--navy); margin-bottom:9px; }
+  .card .lab { font-size:14px; font-weight:700; color:var(--ink); }
+  .card .sub { font-size:12px; color:var(--muted); margin-top:5px; line-height:1.4; }
+</style>
+</head>
+<body>
+  <div id="diagram">
+    <div class="kicker">Module 1 &nbsp;&middot;&nbsp; The agent loop</div>
+
+    <div class="loopzone">
+      <svg class="wires" viewBox="0 0 920 330">
+        <defs>
+          <marker id="apu" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6c5ce7"/>
+          </marker>
+          <marker id="agr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9a9ab0"/>
+          </marker>
+        </defs>
+
+        <!-- you ask -> model -->
+        <path d="M160,158 L292,158" fill="none" stroke="#9a9ab0" stroke-width="2" marker-end="url(#agr)"/>
+
+        <!-- model -> tool (top arc: calls a tool) -->
+        <path d="M470,138 C 512,96 576,96 606,140" fill="none" stroke="#6c5ce7" stroke-width="2.4" marker-end="url(#apu)"/>
+        <text x="540" y="84" text-anchor="middle">calls a tool</text>
+        <text x="540" y="99" text-anchor="middle" class="mono">finish_reason = tool_calls</text>
+
+        <!-- tool -> model (bottom arc: returns result) -->
+        <path d="M606,178 C 576,220 512,220 470,180" fill="none" stroke="#6c5ce7" stroke-width="2.4" marker-end="url(#apu)"/>
+        <text x="548" y="234" text-anchor="middle">returns the result</text>
+
+        <!-- model -> final answer -->
+        <path d="M392,190 L392,252" fill="none" stroke="#9a9ab0" stroke-width="2" marker-end="url(#agr)"/>
+        <text x="380" y="214" text-anchor="end">done</text>
+        <text x="380" y="229" text-anchor="end" class="mono">finish_reason = stop</text>
+      </svg>
+
+      <div class="node ask">You ask<small>a question</small></div>
+      <div class="node model">Model decides<small>one API call</small></div>
+      <div class="node tool">Run the tool<small>your code runs it</small></div>
+      <div class="node final">Final answer</div>
+    </div>
+
+    <div class="infra">
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+        <div class="lab">Model</div>
+        <div class="sub">vLLM on Akamai GPU<br>Qwen2.5-7B-Instruct</div>
+      </div>
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-2 2.6-2.6z"/></svg>
+        <div class="lab">Tools</div>
+        <div class="sub">current_time, calculator,<br>your @tool functions</div>
+      </div>
+      <div class="card">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+        <div class="lab">Framework</div>
+        <div class="sub">Strands Agents<br>runs the loop for you</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

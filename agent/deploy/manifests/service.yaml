@@ -1,0 +1,17 @@
+# A LoadBalancer Service. On Akamai LKE this provisions a NodeBalancer and gives the
+# Service an external IP. It load-balances across the agent replicas.
+apiVersion: v1
+kind: Service
+metadata:
+  name: akamai-sa-agent
+  namespace: akamai-sa-agent
+  labels:
+    app: akamai-sa-agent
+spec:
+  type: LoadBalancer
+  selector:
+    app: akamai-sa-agent
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

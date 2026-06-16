@@ -1,0 +1,25 @@
+{
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "text": "It's nice to meet you, Bob! Are you looking for specific information related to the us-sea region or Akamai services? Could you please provide more details so I can assist you better?"
+      }
+    ],
+    "metadata": {
+      "usage": {
+        "inputTokens": 473,
+        "outputTokens": 42,
+        "totalTokens": 515
+      },
+      "metrics": {
+        "latencyMs": 0,
+        "timeToFirstByteMs": 246
+      }
+    }
+  },
+  "message_id": 1,
+  "redact_message": null,
+  "created_at": "2026-06-15T01:03:04.026533+00:00",
+  "updated_at": "2026-06-15T01:03:04.026552+00:00"
+}
