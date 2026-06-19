@@ -34,9 +34,9 @@ log = logging.getLogger("akamai_sa.discord")
 _read_tools = None
 
 
-def run_once(message: str, grant: str | None = None, confirm: bool = False):
+def run_once(message: str, grant: str | None = None, confirm: bool = False, session_id: str | None = None):
     """Run one turn through the multi-agent orchestrator with the shared reads."""
-    return run_turn(message, read_tools=_read_tools, grant=grant, confirm=confirm)
+    return run_turn(message, read_tools=_read_tools, session_id=session_id, grant=grant, confirm=confirm)
 
 # Discord hard-caps a message at 2000 chars. Stay under it and prefer newline
 # breaks so code blocks and lists do not get cut mid-line.
@@ -87,6 +87,7 @@ def invoke_for_discord(
     message: str,
     grant: str | None = None,
     confirm: bool = False,
+    session_id: str | None = None,
     runner: Callable[..., tuple[str, Any]] = run_once,
 ) -> dict[str, Any]:
     """Run one message through the agent and shape the result for the bridge.
@@ -100,7 +101,7 @@ def invoke_for_discord(
 
     `runner` is injectable for tests; it defaults to the real `run_once`.
     """
-    text, gate = runner(message, grant=grant, confirm=confirm)
+    text, gate = runner(message, grant=grant, confirm=confirm, session_id=session_id)
 
     pending = None
     if gate.pending and gate.pending.get("blocked_reason") == "needs_approval":
@@ -221,6 +222,17 @@ def main() -> None:
         except Exception as exc:  # noqa: BLE001 - bot still runs, reads disabled
             log.warning("akamai-cloud-mcp unavailable: %s; reads disabled.", exc)
 
+    # Warm the docs semantic index in a background thread so it never delays the
+    # Discord login; docs_lookup falls back to lexical until the embed finishes.
+    try:
+        import threading
+
+        from docs_retrieval import warm
+
+        threading.Thread(target=warm, name="docs-warm", daemon=True).start()
+    except Exception:  # noqa: BLE001 - docs_lookup falls back to lexical if this fails
+        log.exception("docs index warm-up failed to start")
+
     intents = discord.Intents.default()
     intents.message_content = True
     intents.dm_messages = True
@@ -269,6 +281,7 @@ def main() -> None:
                 self.question,
                 grant=self.pending["token"],
                 confirm=confirm,
+                session_id=f"discord-{self.requester_id}",
             )
             await deliver(interaction.channel, result["text"])
             self.stop()
@@ -325,6 +338,7 @@ def main() -> None:
                 self.question,
                 grant=self.pending["token"],
                 confirm=True,
+                session_id=f"discord-{self.requester_id}",
             )
             await deliver(interaction.channel, result["text"])
             self.stop()
@@ -348,7 +362,7 @@ def main() -> None:
     async def ask_command(interaction: discord.Interaction, question: str):
         await interaction.response.defer(thinking=True)
         try:
-            result = await asyncio.to_thread(invoke_for_discord, question)
+            result = await asyncio.to_thread(invoke_for_discord, question, session_id=f"discord-{interaction.user.id}")
         except Exception:
             log.exception("slash /ask failed")
             await interaction.followup.send("Something went wrong. Please try again.")
@@ -367,6 +381,7 @@ def main() -> None:
         await interaction.response.send_message(HELP_TEXT, ephemeral=True)
 
     synced = {"done": False}
+    heartbeat_started = {"done": False}
 
     @client.event
     async def on_ready():
@@ -384,6 +399,17 @@ def main() -> None:
             except Exception:
                 log.exception("slash command sync failed")
             synced["done"] = True
+
+        # Start the proactive heartbeat once, alongside the message handlers.
+        if settings.heartbeat_enabled and not heartbeat_started["done"]:
+            try:
+                from heartbeat import heartbeat_loop
+
+                client.loop.create_task(heartbeat_loop(client))
+                heartbeat_started["done"] = True
+                log.info("Heartbeat loop started.")
+            except Exception:
+                log.exception("failed to start heartbeat loop")
 
     @client.event
     async def on_message(message):
@@ -450,7 +476,7 @@ def main() -> None:
 
         async with message.channel.typing():
             try:
-                result = await asyncio.to_thread(invoke_for_discord, question)
+                result = await asyncio.to_thread(invoke_for_discord, question, session_id=f"discord-{message.author.id}")
             except Exception:
                 log.exception("invoke failed")
                 await message.channel.send("Something went wrong. Please try again.")

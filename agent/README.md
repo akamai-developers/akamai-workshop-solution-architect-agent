@@ -2,7 +2,63 @@
 
 The fully built agent in this repo. It is an orchestrator that routes work to focused specialists, reads a real Linode account through a read-only MCP server, prices resources, draws architecture, returns verified Terraform and Linode CLI for setup tasks, and makes changes only behind a human approval gate. Everything it needs runs on Akamai. It is the multi-agent build, the orchestrator with specialists as tools, and the workshop in [`../workshop/`](../workshop/) builds up to it.
 
-![Agent architecture](../diagrams/agent_architecture.png)
+## Architecture
+
+**The multi-agent and its tools.** One orchestrator (a router) calls three specialists as tools, and keeps the diagram, cost, write, and self-report tools - plus the approval gate and the session - on itself. A proactive heartbeat runs alongside it, observe-and-report only.
+
+```mermaid
+flowchart TB
+    U(["You - Discord, HTTP, or CLI"]) --> ORCH
+    ORCH["Orchestrator (router agent)<br/>routing · approval gate · session"]
+
+    subgraph SPEC["Specialists - separate agents, called as tools"]
+      DOC["documentation_agent"]
+      ACCT["account_agent"]
+      PRICE["pricing_agent"]
+    end
+    DOC --> DT["docs_lookup (semantic index)<br/>config_examples (Terraform / CLI)"]
+    ACCT --> MCP["akamai-cloud-mcp<br/>29 read-only account tools"]
+    PRICE --> CALC["calculator"]
+
+    subgraph OWN["Orchestrator's own tools"]
+      DIAG["diagram_lke_cluster<br/>diagram_network"]
+      ADV["cost_advisor"]
+      SELF["current_time · model_endpoint<br/>deployed_region · think"]
+      REM["remember"]
+      WR["write tools, approval-gated<br/>tag · untag · resize · create · delete"]
+    end
+
+    ORCH --> SPEC
+    ORCH --> OWN
+    HB["Proactive heartbeat - no prompt needed<br/>daily cost · security drift · health"] -.->|posts to Discord| U
+```
+
+**The agent on Akamai.** Everything it needs runs on Akamai Cloud: the model, the account tools, both memory layers, and networking.
+
+```mermaid
+flowchart TB
+    D(["Discord users"])
+    subgraph AK["Akamai Cloud"]
+      subgraph LKE["LKE cluster (us-sea)"]
+        subgraph CPU["CPU node pool"]
+          BR["Discord bridge pod<br/>orchestrator + heartbeat<br/>+ akamai-cloud-mcp (stdio)"]
+          PG[("PostgreSQL<br/>long-term memory")]
+        end
+        subgraph GPU["GPU node pool"]
+          VL["vLLM - Qwen2.5-7B"]
+        end
+        NB["NodeBalancer"]
+      end
+      OBJ[("Object Storage<br/>conversation sessions")]
+      LAPI["Linode API<br/>account reads + gated writes"]
+    end
+    D <-->|outbound gateway| BR
+    BR -->|inference| VL
+    NB --> VL
+    BR -->|sessions| OBJ
+    BR -->|facts| PG
+    BR -->|reads / writes| LAPI
+```
 
 ## What you can ask it
 
@@ -10,6 +66,7 @@ Plain English about Akamai Cloud compute, LKE, Object Storage, networking, GPUs,
 
 - List my Linodes and where they are
 - What does it cost to run 3 GPUs for a month
+- Am I overpaying? Right-size my fleet
 - Draw my LKE cluster
 - Give me the Terraform for a Managed PostgreSQL
 - Tag linode 12345 with demo (then approve the change)
@@ -29,9 +86,12 @@ In Discord, reach it with `/ask`, `$sa`, an `@mention`, or a DM. Over HTTP, POST
 - `orchestrator.py`: the agent. A router that calls the documentation, account, and pricing specialists as tools (agents as tools), and keeps the diagram tools, the write tools, the approval gate, and the session on itself. Run `python -m orchestrator` for a local chat loop.
 - `discord_bridge.py`: the Discord bot. Handles DMs and shows Approve and Decline buttons for writes.
 - `mcp_integration.py`: launches the read-only `akamai-cloud-mcp` server and turns it into agent tools.
-- `tools/`: the local tools. `writes.py` (approval-gated), `diagrams.py` (deterministic), `config_examples.py` (verified Terraform and Linode CLI), `regions.py` and `runtime.py` (self-report), `_linode.py` (the Linode API client), `registry.py` (the write manifest).
+- `docs_retrieval.py`: the documentation specialist's retrieval. A baked semantic index ranks the docs pages by meaning, then fetches the top pages live.
+- `heartbeat.py`: the proactive loop. Posts the daily cost snapshot, security drift, and vLLM/Postgres health alerts to Discord with no prompt.
+- `tools/`: the local tools. `writes.py` (approval-gated), `diagrams.py` and `advisor.py` (deterministic cost and utilization), `config_examples.py` (verified Terraform and Linode CLI), `regions.py` and `runtime.py` (self-report), `_linode.py` (the Linode API client), `registry.py` (the write manifest).
 - `hooks/`: `approval_hook.py` (the deny-by-default gate) and `logging_hook.py`.
 - `sessions.py` and `akamai_sessions.py`: conversation sessions on memory, file, or Akamai Object Storage.
+- `memory.py`: long-term memory (durable per-user facts, recalled across conversations) on Akamai Managed PostgreSQL. Off unless `DATABASE_URL` is set.
 - `config/`: `settings.py` (env) and `system_prompts.py`.
 - `models/`: provider selection (vLLM, OpenAI, Anthropic).
 
@@ -67,7 +127,7 @@ In Discord, reach it with `/ask`, `$sa`, an `@mention`, or a DM. Over HTTP, POST
 - Model and inference: Akamai GPU with vLLM.
 - Account data and tools: `akamai-cloud-mcp` over the Linode API.
 - Conversation memory: Akamai Object Storage.
-- Long-term memory: Akamai Managed PostgreSQL with pgvector. The orchestrator uses sessions today; the Postgres-backed long-term store is the production extension.
+- Long-term memory: Akamai Managed PostgreSQL. Durable per-user facts, recalled across conversations; enabled with `DATABASE_URL`.
 - Networking and access: NodeBalancer, Cloud Firewall, VPC.
 - Edge front door: Akamai Functions with the KV store.
 

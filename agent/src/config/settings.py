@@ -104,10 +104,23 @@ class Settings:
     # it, commands sync globally and can take up to an hour to appear.
     discord_guild_id: str | None = field(default_factory=lambda: os.getenv("DISCORD_GUILD_ID") or None)
 
+    # Heartbeat: the proactive, observe-and-report loop (heartbeat.py). Off unless
+    # enabled. Needs the two channel ids to post; without them it runs but stays quiet.
+    heartbeat_enabled: bool = field(default_factory=lambda: _bool("HEARTBEAT_ENABLED", False))
+    heartbeat_tz: str = field(default_factory=lambda: os.getenv("HEARTBEAT_TZ", "America/New_York"))
+    proactive_channel_id: str | None = field(default_factory=lambda: os.getenv("PROACTIVE_CHANNEL_ID") or None)
+    ops_alerts_channel_id: str | None = field(default_factory=lambda: os.getenv("OPS_ALERTS_CHANNEL_ID") or None)
+    # Firewall labels to ignore in the 0.0.0.0/0 drift check (intentionally public, e.g. vLLM).
+    heartbeat_public_fw_allow: str = field(default_factory=lambda: os.getenv("HEARTBEAT_PUBLIC_FW_ALLOW", ""))
+
     # Langfuse
     langfuse_public_key: str | None = field(default_factory=lambda: os.getenv("LANGFUSE_PUBLIC_KEY") or None)
     langfuse_secret_key: str | None = field(default_factory=lambda: os.getenv("LANGFUSE_SECRET_KEY") or None)
     langfuse_host: str = field(default_factory=lambda: os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com"))
+
+    # Long-term memory: a Postgres connection string (Akamai Managed PostgreSQL).
+    # When unset, long-term memory is off and the agent runs on sessions alone.
+    database_url: str | None = field(default_factory=lambda: os.getenv("DATABASE_URL") or None)
 
     @property
     def telemetry_enabled(self) -> bool:

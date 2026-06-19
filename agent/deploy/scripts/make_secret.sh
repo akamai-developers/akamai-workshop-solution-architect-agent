@@ -19,6 +19,10 @@ kubectl create secret generic akamai-sa-agent-secrets \
   --from-literal=SESSION_BUCKET="${SESSION_BUCKET:-}" \
   --from-literal=SESSION_ACCESS_KEY="${SESSION_ACCESS_KEY:-}" \
   --from-literal=SESSION_SECRET_KEY="${SESSION_SECRET_KEY:-}" \
+  --from-literal=DISCORD_TOKEN="${DISCORD_TOKEN:?set DISCORD_TOKEN in .env}" \
+  --from-literal=LANGFUSE_PUBLIC_KEY="${LANGFUSE_PUBLIC_KEY:-}" \
+  --from-literal=LANGFUSE_SECRET_KEY="${LANGFUSE_SECRET_KEY:-}" \
+  --from-literal=DATABASE_URL="${DATABASE_URL:-}" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-echo "Created/updated secret akamai-sa-agent-secrets in namespace kagent."
+echo "Created/updated secret akamai-sa-agent-secrets in namespace akamai-sa-agent."

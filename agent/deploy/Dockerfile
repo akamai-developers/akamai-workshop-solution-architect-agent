@@ -11,17 +11,38 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Graphviz system binary (`dot`): the `diagrams` package shells out to it to
+# render architecture diagrams. The pip packages alone are not enough.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends graphviz \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml README.md ./
-COPY src ./src
-# The documentation specialist's local Akamai docs index.
+COPY scripts ./scripts
+# The documentation specialist's docs index (llms.txt).
 COPY data ./data
+
+ENV FASTEMBED_CACHE=/app/data/fastembed \
+    DOCS_INDEX_PATH=/app/data/llms.txt \
+    DOCS_INDEX_DIR=/app/data/docs_index
+
+# Bake the ONNX model AND the semantic page index (embed the llms.txt entries;
+# no crawl - Akamai's WAF blocks that, and page bodies are fetched live per query
+# at runtime). Embedding the corpus HERE means the runtime only loads a ~1MB
+# matrix and embeds the single query, so the pod never spikes memory. Own layer
+# => cached unless scripts/ or data/ change.
+RUN pip install --upgrade pip \
+    && pip install fastembed numpy \
+    && python -c "from fastembed import TextEmbedding; TextEmbedding('BAAI/bge-small-en-v1.5', cache_dir='/app/data/fastembed')" \
+    && python scripts/build_docs_index.py
+
+COPY src ./src
 
 # sessions: boto3 for Object Storage. telemetry: Langfuse. akamai-cloud-mcp: the
 # read-only account tool server, baked in so it runs over stdio in-cluster.
-RUN pip install --upgrade pip && pip install ".[telemetry,sessions]" akamai-cloud-mcp
+RUN pip install ".[telemetry,sessions]" akamai-cloud-mcp
 
-ENV DOCS_INDEX_PATH=/app/data/llms.txt \
-    MCP_COMMAND=akamai-cloud-mcp \
+ENV MCP_COMMAND=akamai-cloud-mcp \
     MCP_ARGS="--domains regions,pricing,compute,lke,object_storage,networking,account --max-results 25"
 
 RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app

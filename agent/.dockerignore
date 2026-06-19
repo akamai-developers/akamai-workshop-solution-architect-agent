@@ -1,0 +1,11 @@
+# Defense-in-depth: keep credentials and local cruft out of the build context so
+# they can never land in an image layer. The Dockerfile copies only src/, data/,
+# pyproject.toml, and README.md today, but this guards against a future COPY . .
+.env
+.env.*
+.git/
+.venv/
+.sessions/
+**/__pycache__/
+*.pyc
+.DS_Store

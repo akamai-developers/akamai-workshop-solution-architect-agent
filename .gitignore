@@ -222,3 +222,6 @@ agent/deploy/manifests/secret.yaml
 agent/deploy/manifests/*-secret.yaml
 agent/deploy/manifests/discord-bridge.yaml
 agent/deploy/manifests/networkpolicy.yaml
+
+# Rendered diagram output from the diagram tools (real account topology).
+agent/diagrams/

@@ -1,0 +1,98 @@
+# In-cluster PostgreSQL backing the agent's long-term memory (agent_facts table).
+# Single replica, durable on a Linode Block Storage volume (Retain policy).
+# Private: reachable only at postgres.akamai-sa-agent.svc.cluster.local:5432.
+# The POSTGRES_* credentials come from the separately-created `postgres-auth`
+# secret (kept out of this file). Apply with:
+#   kubectl apply -f deploy/manifests/postgres.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: akamai-sa-agent
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: akamai-sa-agent
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: linode-block-storage-retain
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: akamai-sa-agent
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: akamai-sa-agent
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: akamai-sa-agent
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: akamai-sa-agent
+spec:
+  replicas: 1
+  # RWO volume attaches to one pod at a time; Recreate avoids a rollout deadlock.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        app.kubernetes.io/part-of: akamai-sa-agent
+    spec:
+      # CPU pool, same as the bridge — never the GPU node.
+      nodeSelector:
+        lke.linode.com/pool-id: "876259"
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: postgres-auth
+          env:
+            # Keep PGDATA in a subdir so lost+found on the volume root doesn't block init.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "akamai", "-d", "agentmemory"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "akamai", "-d", "agentmemory"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data

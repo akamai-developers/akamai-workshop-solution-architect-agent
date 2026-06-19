@@ -28,6 +28,9 @@ dependencies = [
     "matplotlib>=3.8",
     "networkx>=3.0",
     "diagrams>=0.23",
+    "psycopg[binary]>=3.1",
+    "fastembed>=0.4",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
