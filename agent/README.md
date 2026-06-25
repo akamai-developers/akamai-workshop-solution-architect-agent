@@ -6,32 +6,7 @@ The fully built agent in this repo. It is an orchestrator that routes work to fo
 
 **The multi-agent and its tools.** One orchestrator (a router) calls three specialists as tools, and keeps the diagram, cost, write, and self-report tools - plus the approval gate and the session - on itself. A proactive heartbeat runs alongside it, observe-and-report only.
 
-```mermaid
-flowchart TB
-    U(["You - Discord, HTTP, or CLI"]) --> ORCH
-    ORCH["Orchestrator (router agent)<br/>routing · approval gate · session"]
-
-    subgraph SPEC["Specialists - separate agents, called as tools"]
-      DOC["documentation_agent"]
-      ACCT["account_agent"]
-      PRICE["pricing_agent"]
-    end
-    DOC --> DT["docs_lookup (semantic index)<br/>config_examples (Terraform / CLI)"]
-    ACCT --> MCP["akamai-cloud-mcp<br/>29 read-only account tools"]
-    PRICE --> CALC["calculator"]
-
-    subgraph OWN["Orchestrator's own tools"]
-      DIAG["diagram_lke_cluster<br/>diagram_network"]
-      ADV["cost_advisor"]
-      SELF["current_time · model_endpoint<br/>deployed_region · think"]
-      REM["remember"]
-      WR["write tools, approval-gated<br/>tag · untag · resize · create · delete"]
-    end
-
-    ORCH --> SPEC
-    ORCH --> OWN
-    HB["Proactive heartbeat - no prompt needed<br/>daily cost · security drift · health"] -.->|posts to Discord| U
-```
+![agent](../diagrams/agent-architecture-2.jpg)
 
 **The agent on Akamai.** Everything it needs runs on Akamai Cloud: the model, the account tools, both memory layers, and networking.
 
