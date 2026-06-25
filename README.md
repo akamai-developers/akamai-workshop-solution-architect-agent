@@ -2,6 +2,8 @@
 
 This repo helps developers and engineers build AI agents on Akamai Cloud. There are two ways to use it: build an agent step by step in the workshop, or run the agent that is already built.
 
+Create an [Akamai Cloud account](http://login.linode.com/signup?promo=akm-dev-git-300-31126-M055) with an API token (includes free $300 credit)
+
 The running example is an **Akamai Cloud Solutions Architect**: an agent that reads a real Linode account, prices resources, draws its own architecture, answers from the official docs, and makes changes only behind a human approval gate. Everything it needs runs on Akamai: the model on Akamai GPUs with vLLM, the agent on LKE, conversation memory in Object Storage, long-term memory in Managed PostgreSQL.
 
 ![The stack on Akamai](diagrams/stack_on_akamai.png)
